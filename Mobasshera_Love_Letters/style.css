@@ -235,3 +235,31 @@ header p {
         transform: translateY(0);
     }
 }
+
+/* Fixed Back to Home Button Style */
+.back-to-home-btn {
+    position: fixed;         /* Isse button scroll karne par bhi nahi hilega */
+    top: 20px;               /* Screen ke top se gap */
+    left: 20px;              /* Screen ke left se gap */
+    z-index: 9999;           /* Isse button hamesha sabhi elements ke upar dikhega */
+    background-color: #ff4d6d; /* Romantic pink theme color */
+    color: #ffffff;          /* Text color */
+    padding: 10px 18px;      /* Button ka size */
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: bold;
+    text-decoration: none;   /* Underline hatane ke liye */
+    border-radius: 25px;     /* Rounded pill shape */
+    box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3); /* Soft shadow effect */
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease; /* Smooth hover transition */
+}
+
+/* Hover Effect (Jab button par mouse aayega) */
+.back-to-home-btn:hover {
+    background-color: #ff758f;
+    transform: translateY(-2px); /* Halk sa upar uthega */
+    box-shadow: 0 6px 20px rgba(255, 77, 109, 0.5);
+}
+
