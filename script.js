@@ -236,36 +236,67 @@ document.getElementById("musicJump")?.addEventListener("click", () => document.g
       status('Default romantic background restored ♡');
     });
 
+   
+    // Upload Gallery Photos to Firebase Storage
     $('mediaUpload').addEventListener('change', async e => {
       const files = Array.from(e.target.files || []);
+
       if (!files.length) return;
-      let saved = 0, failed = 0;
-      status(`Uploading ${files.length} photo(s) to shared cloud…`);
+
+      const {
+        ref,
+        uploadBytes,
+        getDownloadURL
+      } = window.firestoreTools;
+
+      const storage = window.firebaseStorage;
+
+      let saved = 0;
+      let failed = 0;
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+
         if (!file.type.startsWith('image/')) {
           failed++;
           continue;
         }
+
         try {
-          const dataUrl = await compressImage(file, 850, 0.7);
+          status(`Uploading ${i + 1}/${files.length}: ${file.name}`);
+
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+
+          const storagePath =
+            `gallery/${Date.now()}_${i}_${safeName}`;
+
+          const storageRef = ref(storage, storagePath);
+
+          await uploadBytes(storageRef, file);
+
+          const downloadURL = await getDownloadURL(storageRef);
+
           await addDoc(collection(db, 'gallery'), {
             name: file.name,
             kind: 'image',
-            url: dataUrl,
+            url: downloadURL,
+            storagePath: storagePath,
             createdAt: Date.now() + i
           });
+
           saved++;
-          status(`Uploaded ${saved}/${files.length} photo(s)…`);
+
         } catch (err) {
           failed++;
-          console.error(err);
-          status('Upload error: ' + err.message);
+          console.error("Photo upload error:", err);
         }
       }
-      if (saved > 0) {
-        status(`${saved} photo(s) added to shared gallery${failed ? ` · ${failed} skipped` : ' ♡'}`);
-      }
+
+      status(
+        `${saved} photo(s) uploaded successfully ♡` +
+        (failed ? ` · ${failed} failed` : '')
+      );
+
       e.target.value = '';
     });
 
