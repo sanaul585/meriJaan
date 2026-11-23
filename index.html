@@ -238,25 +238,60 @@
   <div class="letter-modal" id="letterModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden><div class="modal-card"><button class="modal-close" id="closeModal" aria-label="Close">×</button><span>💌</span><h3 id="modalTitle">A little note for you</h3><p id="modalText"></p><small>— Sanaul ♥</small></div></div>
   <script src="script.js"></script>
 
+
 <script type="module">
-  import { initializeApp } from "https://gstatic.com";
-  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc, getDoc } from "https://gstatic.com";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    onSnapshot,
+    query,
+    orderBy,
+    deleteDoc,
+    doc,
+    setDoc,
+    getDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL,
+    deleteObject
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyARQKTX65NCQ_y3Pu9TssaG8Eq_pPva8oI",
+    apiKey: "YOUR_API_KEY",
     authDomain: "gallary-love.firebaseapp.com",
     projectId: "gallary-love",
     storageBucket: "gallary-love.firebasestorage.app",
     messagingSenderId: "823108942310",
-    appId: "1:823108942310:web:30b02c51ff9eac0bb2fe27",
-    measurementId: "G-6D5MB1YL9L"
+    appId: "1:823108942310:web:30b02c51ff9eac0bb2fe27"
   };
 
-  const app = initializeApp(firebaseConfig);
-  window.firebaseDB = getFirestore(app);
-  window.firestoreTools = { collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc, getDoc };
-  window.dispatchEvent(new Event("firebase-ready"));
+  try {
+    const app = initializeApp(firebaseConfig);
+
+    window.firebaseDB = getFirestore(app);
+    window.firebaseStorage = getStorage(app);
+
+    window.firestoreTools = {
+      collection, addDoc, onSnapshot, query, orderBy,
+      deleteDoc, doc, setDoc, getDoc,
+      ref, uploadBytes, getDownloadURL, deleteObject
+    };
+
+    window.dispatchEvent(new Event("firebase-ready"));
+    console.log("Firebase connected successfully ❤️");
+
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+  }
 </script>
+
 <script src="script.js"></script>
 </body>
 </html>
