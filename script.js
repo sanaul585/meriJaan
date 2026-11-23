@@ -123,7 +123,7 @@ document.getElementById("volume")?.addEventListener("input", e => {
 });
 document.getElementById("musicJump")?.addEventListener("click", () => document.getElementById("music").scrollIntoView({ behavior: "smooth" }));
 
-// Firebase Cloud Gallery (Shared across devices in real-time)
+// Firebase Cloud Gallery
 (() => {
   const PAGE_SIZE = 4;
   let allMedia = [];
@@ -134,8 +134,7 @@ document.getElementById("musicJump")?.addEventListener("click", () => document.g
   const $ = id => document.getElementById(id);
   const status = text => { if ($('uploadStatus')) $('uploadStatus').textContent = text; };
 
-  // Image compressor so photos fit easily inside Firestore (free tier)
-  function compressImage(file, maxWidth = 900, quality = 0.72) {
+  function compressImage(file, maxWidth = 850, quality = 0.7) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = e => {
@@ -172,13 +171,14 @@ document.getElementById("musicJump")?.addEventListener("click", () => document.g
 
   function initFirebaseGallery() {
     const db = window.firebaseDB;
-    const { collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc } = window.firestoreTools;
-    if (!db) {
+    const tools = window.firestoreTools;
+    if (!db || !tools) {
       status('Connecting to cloud gallery...');
       return;
     }
+    const { collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc } = tools;
+    status('Cloud gallery connected ♡ Ready for your photos');
 
-    // Listen to Profile & Background settings in real-time
     onSnapshot(doc(db, 'settings', 'siteConfig'), snap => {
       if (snap.exists()) {
         const data = snap.data();
@@ -191,7 +191,6 @@ document.getElementById("musicJump")?.addEventListener("click", () => document.g
       }
     });
 
-    // Listen to Gallery Photos in real-time
     const q = query(collection(db, 'gallery'), orderBy('createdAt', 'desc'));
     onSnapshot(q, snapshot => {
       allMedia = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -199,46 +198,44 @@ document.getElementById("musicJump")?.addEventListener("click", () => document.g
       renderGallery();
     }, err => {
       console.error(err);
-      status('Check Firebase Firestore Rules (allow read, write: if true).');
+      status('Permission error: Check Firebase Firestore Rules (allow read, write: if true).');
     });
 
-    // Upload Profile Photo
     $('profileUpload').addEventListener('change', async e => {
-      const file = e.target.files[0]; if (!file) return;
+      const file = e.target.files[0];
+      if (!file) return;
       try {
         status('Uploading Mobashshera’s top photo…');
-        const dataUrl = await compressImage(file, 600, 0.8);
+        const dataUrl = await compressImage(file, 600, 0.78);
         await setDoc(doc(db, 'settings', 'siteConfig'), { profileUrl: dataUrl }, { merge: true });
         status('Mobashshera’s top photo updated for both of you ♡');
       } catch (err) {
         console.error(err);
-        status('Could not upload photo. Try a smaller image.');
+        status('Could not upload photo: ' + err.message);
       }
       e.target.value = '';
     });
 
-    // Upload Fixed Background
     $('backgroundUpload').addEventListener('change', async e => {
-      const file = e.target.files[0]; if (!file) return;
+      const file = e.target.files[0];
+      if (!file) return;
       try {
         status('Uploading background photo…');
-        const dataUrl = await compressImage(file, 1100, 0.7);
+        const dataUrl = await compressImage(file, 1000, 0.68);
         await setDoc(doc(db, 'settings', 'siteConfig'), { backgroundUrl: dataUrl }, { merge: true });
         status('Fixed background updated for both of you ♡');
       } catch (err) {
         console.error(err);
-        status('Could not upload background. Try a smaller image.');
+        status('Could not upload background: ' + err.message);
       }
       e.target.value = '';
     });
 
-    // Clear Background
     $('clearBackground').addEventListener('click', async () => {
       await setDoc(doc(db, 'settings', 'siteConfig'), { backgroundUrl: '' }, { merge: true });
       status('Default romantic background restored ♡');
     });
 
-    // Upload Gallery Photos
     $('mediaUpload').addEventListener('change', async e => {
       const files = Array.from(e.target.files || []);
       if (!files.length) return;
@@ -247,12 +244,11 @@ document.getElementById("musicJump")?.addEventListener("click", () => document.g
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         if (!file.type.startsWith('image/')) {
-
           failed++;
           continue;
         }
         try {
-          const dataUrl = await compressImage(file, 900, 0.72);
+          const dataUrl = await compressImage(file, 850, 0.7);
           await addDoc(collection(db, 'gallery'), {
             name: file.name,
             kind: 'image',
@@ -264,9 +260,12 @@ document.getElementById("musicJump")?.addEventListener("click", () => document.g
         } catch (err) {
           failed++;
           console.error(err);
+          status('Upload error: ' + err.message);
         }
       }
-      status(`${saved} photo(s) added to shared gallery${failed ? ` · ${failed} skipped (only images supported in free cloud)` : ' ♡'}`);
+      if (saved > 0) {
+        status(`${saved} photo(s) added to shared gallery${failed ? ` · ${failed} skipped` : ' ♡'}`);
+      }
       e.target.value = '';
     });
 
