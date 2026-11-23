@@ -43,7 +43,7 @@ footer{padding:30px 6vw;display:flex;align-items:center;justify-content:space-be
 /* Personal profile, fixed background and large local media gallery */
 body::before{background-image:linear-gradient(135deg,rgba(255,249,252,.88),rgba(255,240,246,.82)),var(--user-bg,none),radial-gradient(circle at 12% 18%,rgba(255,180,212,.25),transparent 28%),radial-gradient(circle at 88% 65%,rgba(205,177,255,.18),transparent 30%);background-size:cover;background-position:center;background-attachment:fixed}
 .hero-profile-wrap{width:118px;height:118px;margin:0 auto 22px;position:relative;display:grid;place-items:center}
-.hero-profile-photo,.hero-profile-placeholder{width:120px;height:120px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 12px 32px #c65c8c45}
+.hero-profile-photo,.hero-profile-placeholder{width:140px;height:140px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 12px 32px #c65c8c45}
 .hero-profile-placeholder{display:grid;place-items:center;background:conic-gradient(from 20deg,#f5b2cc,#fff,#d9b5ed,#f5b2cc);color:#b45c86;font:700 3rem 'Playfair Display';}
 .profile-sparkle{position:absolute;right:0;top:2px;color:#c58bd4;font-size:1.5rem;animation:bob 3s infinite}
 .gallery-section{background:linear-gradient(135deg,#fff8fbdd,#fff0f7dd)}
