@@ -238,67 +238,82 @@ document.getElementById("musicJump")?.addEventListener("click", () => document.g
 
    
     // Upload Gallery Photos to Firebase Storage
-    $('mediaUpload').addEventListener('change', async e => {
-      const files = Array.from(e.target.files || []);
 
-      if (!files.length) return;
+// Upload Gallery Photos to Firebase Storage
+$('mediaUpload').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
 
-      const {
-        ref,
-        uploadBytes,
-        getDownloadURL
-      } = window.firestoreTools;
+  const storage = window.firebaseStorage;
+  const {
+    collection,
+    addDoc,
+    ref,
+    uploadBytes,
+    getDownloadURL
+  } = window.firestoreTools || {};
 
-      const storage = window.firebaseStorage;
-
-      let saved = 0;
-      let failed = 0;
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-
-        if (!file.type.startsWith('image/')) {
-          failed++;
-          continue;
-        }
-
-        try {
-          status(`Uploading ${i + 1}/${files.length}: ${file.name}`);
-
-          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-
-          const storagePath =
-            `gallery/${Date.now()}_${i}_${safeName}`;
-
-          const storageRef = ref(storage, storagePath);
-
-          await uploadBytes(storageRef, file);
-
-          const downloadURL = await getDownloadURL(storageRef);
-
-          await addDoc(collection(db, 'gallery'), {
-            name: file.name,
-            kind: 'image',
-            url: downloadURL,
-            storagePath: storagePath,
-            createdAt: Date.now() + i
-          });
-
-          saved++;
-
-        } catch (err) {
-          failed++;
-          console.error("Photo upload error:", err);
-        }
-      }
-
-      status(
-        `${saved} photo(s) uploaded successfully ♡` +
-        (failed ? ` · ${failed} failed` : '')
-      );
-
-      e.target.value = '';
+  if (!storage || !ref || !uploadBytes || !getDownloadURL) {
+    status('Firebase Storage connect nahi hua. Console check karein.');
+    console.error('Firebase Storage/tools missing:', {
+      storage: !!storage,
+      ref: !!ref,
+      uploadBytes: !!uploadBytes,
+      getDownloadURL: !!getDownloadURL
     });
+    return;
+  }
+
+  let saved = 0;
+  let failed = 0;
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+
+    if (!file.type.startsWith('image/')) {
+      failed++;
+      continue;
+    }
+
+    try {
+      status(`Uploading ${i + 1}/${files.length}: ${file.name}`);
+
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `gallery/${Date.now()}_${i}_${safeName}`;
+      const imageRef = ref(storage, storagePath);
+
+      await uploadBytes(imageRef, file, {
+        contentType: file.type
+      });
+
+      const imageURL = await getDownloadURL(imageRef);
+
+      await addDoc(collection(db, 'gallery'), {
+        name: file.name,
+        kind: 'image',
+        url: imageURL,
+        storagePath: storagePath,
+        createdAt: Date.now() + i
+      });
+
+      saved++;
+      status(`${saved}/${files.length} photo(s) uploaded ♡`);
+
+    } catch (err) {
+      failed++;
+      console.error('Gallery upload failed:', err);
+      status(`Upload error: ${err.code || err.message}`);
+    }
+  }
+
+  status(
+    `${saved} photo(s) uploaded successfully ♡` +
+    (failed ? ` | ${failed} failed. F12 Console check karein.` : '')
+  );
+
+  e.target.value = '';
+});
+
 
     window.deleteCloudMedia = async (id, name) => {
       if (!window.confirm(`Delete "${name}" for everyone? This cannot be undone.`)) return;
